@@ -100,6 +100,84 @@ t.test(sppb ~ sono_classe, paired = FALSE, df) |>
   report()
 ```
 
+## Marcha - funcionadalidade - SEM OS OUTLIERS
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |>
+  filter(!vel_marcha > 30) |> 
+  ggplot(aes(x = sono_classe,
+             y = vel_marcha,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |>
+  filter(!vel_marcha > 30) |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(vel_marcha, na.rm = TRUE),
+            DP = sd(vel_marcha, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+# Filtrando os outliers
+
+df_marcha <- 
+  df |> 
+  filter(!vel_marcha > 30)
+
+t.test(vel_marcha ~ sono_classe, paired = FALSE, df_marcha) |> 
+  report()
+```
+
+## Marcha - funcionadalidade - COM OS OUTLIERS
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |>
+  ggplot(aes(x = sono_classe,
+             y = vel_marcha,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |>
+  group_by(sono_classe) |> 
+  summarise(média = mean(vel_marcha, na.rm = TRUE),
+            DP = sd(vel_marcha, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(vel_marcha ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+
+## tug
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = tug,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(tug, na.rm = TRUE),
+            DP = sd(tug, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(tug ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
 ## Circunferencia da Cintura
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
 df |> 
