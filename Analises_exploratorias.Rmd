@@ -1,0 +1,432 @@
+---
+title: "Analises Exploratórias"
+author: "Saulo Gil"
+date: "02/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pacotes
+```{r}
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(report)
+options(scipen = 999)
+
+```
+
+## Lendo e ajustando a base
+```{r}
+df <- read_excel("data_sono.xlsx") |> 
+  rename(classe = `Classificação (1 sobrepeso, 2 obesidade, 3 sarco)`,
+         mgorda_perc = `Mgorda%`) |> 
+  mutate(sono_classe = if_else(Global_Score > 5,
+                               "mal-dormidor",
+                               "bom-dormirdor")) |> 
+  janitor::clean_names()
+
+skimr::skim(df)
+```
+## Hand grip absoluto
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = hg,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(hg, na.rm = TRUE),
+            DP = sd(hg, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(hg ~ sono_classe, paired = FALSE,data = df) |> 
+  report()
+```
+
+## Hand grip dividido pelo IMC
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = hg_imc,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(hg_imc, na.rm = TRUE),
+            DP = sd(hg_imc, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(hg_imc ~ sono_classe, paired = FALSE,data = df) |> 
+  report()
+```
+
+## SPPB
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = sppb,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(sppb, na.rm = TRUE),
+            DP = sd(sppb, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(sppb ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Circunferencia da Cintura
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = cc,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(cc, na.rm = TRUE),
+            DP = sd(cc, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(cc ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Indice de massa corporal
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = imc,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(imc, na.rm = TRUE),
+            DP = sd(imc, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(imc ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Relação Cintura Quadril
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = rcq,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(rcq, na.rm = TRUE),
+            DP = sd(rcq, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(rcq ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Massa magra
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = mm,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(mm, na.rm = TRUE),
+            DP = sd(mm, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(mm ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Massa magra dividida pelo IMC
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = mm_imc,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(mm_imc, na.rm = TRUE),
+            DP = sd(mm_imc, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(mm_imc ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Gordura Visceral
+
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |>
+  mutate(vat_kg = as.numeric(vat_kg)) |> 
+  ggplot(aes(x = sono_classe,
+             y = vat_kg,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |>
+  mutate(vat_kg = as.numeric(vat_kg)) |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(vat_kg, na.rm = TRUE),
+            DP = sd(vat_kg, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(as.numeric(vat_kg) ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Massa gorda total
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = mgorda_total,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(mgorda_total, na.rm = TRUE),
+            DP = sd(mgorda_total, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(mgorda_total ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Massa gorda percentual
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = mgorda_perc,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(mgorda_perc, na.rm = TRUE),
+            DP = sd(mgorda_total, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(mgorda_perc ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+## Massa gorda tronco
+
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df |> 
+  ggplot(aes(x = sono_classe,
+             y = m_gorda_tronco,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(m_gorda_tronco, na.rm = TRUE),
+            DP = sd(m_gorda_tronco, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(m_gorda_tronco ~ sono_classe, paired = FALSE, df) |> 
+  report()
+```
+
+CONCLUSÕES PARCIAIS
+
+Pacientes "Mal dormidores" tem uma menor massa magra (absoluta e corrigida pelo IMC) e força de preensão manual (absoluta e corrigida pelo IMC) do que idosos "bons dormidores". Será que há uma associação o escore de sono e a massa magra/força?
+
+# VERIFICANDO AS ASSOCIAÇÕES
+
+## Relação entre Escore global e massa magra
+
+```{r}
+df |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = mm)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r warning=FALSE}
+# REGRESSÃO NÃO AJUSTADA
+modelo1 <- lm(mm ~ global_score, df)
+parameters::parameters(modelo1)
+report(modelo1)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(mm ~ global_score + sexo + idade + imc, df)
+parameters::parameters(modelo2)
+report(modelo2)
+
+```
+
+## Relação entre Escore global e massa magra corrigida pelo IMC
+
+```{r}
+df |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = mm_imc)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo3 <- lm(mm_imc ~ global_score, df)
+parameters::parameters(modelo3)
+report(modelo3)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc, df)
+parameters::parameters(modelo4)
+report(modelo4)
+```
+
+## Relação entre Escore global e handgrip
+
+```{r}
+df |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = hg)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo5 <- lm(hg ~ global_score, df)
+parameters::parameters(modelo5)
+report(modelo5)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo6 <- lm(hg ~ global_score + sexo + idade + imc, df)
+parameters::parameters(modelo6)
+report(modelo6)
+```
+
+## Relação entre Escore global e handgrip/IMC
+
+```{r}
+df |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = hg_imc)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo7 <- lm(hg_imc ~ global_score, df)
+parameters::parameters(modelo7)
+report(modelo7)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc, df)
+parameters::parameters(modelo8)
+report(modelo8)
+```
+
+
+# NOVAS CONCLUSÕES
+
+Como visto antes, tanto a massa magra quando a força de preensão manual parecem sofrer alguma influência do status de sono do idoso, ou seja, quanto pior o escore de sono (mal-dormidor) menor a massa magra absoluta e relativa. Tendo em vista essa influência, é razoavelmente lógico imaginar que a qualidade do sono seja preditor da massa magra e força de preensão manual. Após analisar os resultados das regressões, podemos observar que o escore de qualidade do sono é um preditor da massa magra (absoluta e relativa) e força de preensão manual (absoluta e relativa) de idosos independente do sexo, idade e IMC.
+
+
+
+
