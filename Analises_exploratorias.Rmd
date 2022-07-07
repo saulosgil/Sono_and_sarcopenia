@@ -19,21 +19,66 @@ options(scipen = 999)
 
 ```
 
-## Lendo e ajustando a base
-```{r}
-df <- read_excel("data_sono.xlsx") |> 
-  rename(classe = `Classificação (1 sobrepeso, 2 obesidade, 3 sarco)`,
-         mgorda_perc = `Mgorda%`) |> 
-  mutate(sono_classe = if_else(Global_Score > 5,
-                               "mal-dormidor",
-                               "bom-dormirdor")) |> 
-  janitor::clean_names()
+## Lendo a base
+```{r message=FALSE, warning=FALSE}
+# Lendo a base --------------------------------------------------------------------------------
 
-skimr::skim(df)
+df <- read_excel("data_sono.xlsx",
+                 col_types = c("text", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric", "numeric", "numeric", 
+                                       "numeric")) |> 
+  janitor::clean_names()
 ```
+
+## Ajustando a base 
+```{r}
+df_ajustada <- 
+  df |> 
+  rename(sexo = sexo_0f_1m,
+         classe = classificacao_1_sobrepeso_2_obesidade_3_sarco) |> 
+  mutate(sexo = if_else(sexo == 0, "female", "male"),
+         classe = case_when(classe == 1 ~ "sobrepeso",
+                            classe == 2 ~ "obeso",
+                            classe == 3 ~ "sarcopenia"),
+         sono_classe = if_else(global_score > 5, "Mau dormidor", "Bom dormidor")
+)
+```
+
 ## Hand grip absoluto
+### Verificando outliers
+```{r}
+df_ajustada |>  
+  mutate(
+    z_score_hg = (hg-mean(hg))/sd(hg),
+    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
+  ) |> 
+  ggplot2::ggplot(ggplot2::aes(x = sono_classe,
+                               y = hg, 
+                               color = e_outlier_hg)) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::theme_minimal(15)
+```
+
+
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |>  
+  mutate(
+    z_score_hg = (hg-mean(hg))/sd(hg),
+    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
+  ) |> 
+  filter(hg < 35) |> 
   ggplot(aes(x = sono_classe,
              y = hg,
              color = sono_classe)) +
@@ -43,14 +88,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |>  
+  mutate(
+    z_score_hg = (hg-mean(hg))/sd(hg),
+    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
+  ) |> 
+  filter(!hg > 35) |>
   group_by(sono_classe) |> 
   summarise(média = mean(hg, na.rm = TRUE),
             DP = sd(hg, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(hg ~ sono_classe, paired = FALSE,data = df) |> 
+t.test(hg ~ sono_classe, paired = FALSE,data = df1) |> 
   report()
 ```
 
@@ -58,7 +108,7 @@ t.test(hg ~ sono_classe, paired = FALSE,data = df) |>
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
 df |> 
   ggplot(aes(x = sono_classe,
-             y = hg_imc,
+             y = handgrip_imc,
              color = sono_classe)) +
   geom_boxplot(varwidth = FALSE) +
   geom_jitter(width = 0.1) +
@@ -68,12 +118,12 @@ df |>
 ```{r}
 df |> 
   group_by(sono_classe) |> 
-  summarise(média = mean(hg_imc, na.rm = TRUE),
-            DP = sd(hg_imc, na.rm = TRUE))
+  summarise(média = mean(handgrip_imc, na.rm = TRUE),
+            DP = sd(handgrip_imc, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(hg_imc ~ sono_classe, paired = FALSE,data = df) |> 
+t.test(handgrip_imc ~ sono_classe, paired = FALSE,data = df) |> 
   report()
 ```
 
