@@ -6,7 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
 ```
 
 ## Pacotes
@@ -21,64 +25,19 @@ options(scipen = 999)
 
 ## Lendo a base
 ```{r message=FALSE, warning=FALSE}
-# Lendo a base --------------------------------------------------------------------------------
+# Lendo a base ----------------------------------------------------------------------
 
-df <- read_excel("data_sono.xlsx",
-                 col_types = c("text", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", 
-                                       "numeric")) |> 
-  janitor::clean_names()
+df_ajustada <- read.csv("df_ajustada.csv")
+
 ```
 
-## Ajustando a base 
 ```{r}
-df_ajustada <- 
-  df |> 
-  rename(sexo = sexo_0f_1m,
-         classe = classificacao_1_sobrepeso_2_obesidade_3_sarco) |> 
-  mutate(sexo = if_else(sexo == 0, "female", "male"),
-         classe = case_when(classe == 1 ~ "sobrepeso",
-                            classe == 2 ~ "obeso",
-                            classe == 3 ~ "sarcopenia"),
-         sono_classe = if_else(global_score > 5, "Mau dormidor", "Bom dormidor")
-)
+skimr::skim(df_ajustada)
 ```
 
 ## Hand grip absoluto
-### Verificando outliers
-```{r}
-df_ajustada |>  
-  mutate(
-    z_score_hg = (hg-mean(hg))/sd(hg),
-    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
-  ) |> 
-  ggplot2::ggplot(ggplot2::aes(x = sono_classe,
-                               y = hg, 
-                               color = e_outlier_hg)) +
-  ggplot2::geom_point(size = 3) +
-  ggplot2::theme_minimal(15)
-```
-
-
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
 df_ajustada |>  
-  mutate(
-    z_score_hg = (hg-mean(hg))/sd(hg),
-    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
-  ) |> 
-  filter(hg < 35) |> 
   ggplot(aes(x = sono_classe,
              y = hg,
              color = sono_classe)) +
@@ -89,26 +48,20 @@ df_ajustada |>
 
 ```{r}
 df_ajustada |>  
-  mutate(
-    z_score_hg = (hg-mean(hg))/sd(hg),
-    e_outlier_hg = dplyr::if_else(abs(z_score_hg) > 2, "É outlier", "Não é outlier")
-  ) |> 
-  filter(!hg > 35) |>
   group_by(sono_classe) |> 
   summarise(média = mean(hg, na.rm = TRUE),
             DP = sd(hg, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(hg ~ sono_classe, paired = FALSE,data = df1) |> 
-  report()
+t.test(hg ~ sono_classe, paired = FALSE,data = df_ajustada) 
 ```
 
 ## Hand grip dividido pelo IMC
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
-             y = handgrip_imc,
+             y = hg_imc,
              color = sono_classe)) +
   geom_boxplot(varwidth = FALSE) +
   geom_jitter(width = 0.1) +
@@ -116,20 +69,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
-  summarise(média = mean(handgrip_imc, na.rm = TRUE),
-            DP = sd(handgrip_imc, na.rm = TRUE))
+  summarise(média = mean(hg_imc, na.rm = TRUE),
+            DP = sd(hg_imc, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(handgrip_imc ~ sono_classe, paired = FALSE,data = df) |> 
-  report()
+t.test(hg_imc ~ sono_classe, paired = FALSE,data = df_ajustada)
 ```
 
 ## SPPB
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = sppb,
              color = sono_classe)) +
@@ -139,20 +91,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(sppb, na.rm = TRUE),
             DP = sd(sppb, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(sppb ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(sppb ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
 
 ## Marcha - funcionadalidade - SEM OS OUTLIERS
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |>
+df_ajustada |>
   filter(!vel_marcha > 30) |> 
   ggplot(aes(x = sono_classe,
              y = vel_marcha,
@@ -163,7 +114,7 @@ df |>
 ```
 
 ```{r}
-df |>
+df_ajustada |>
   filter(!vel_marcha > 30) |> 
   group_by(sono_classe) |> 
   summarise(média = mean(vel_marcha, na.rm = TRUE),
@@ -174,16 +125,15 @@ df |>
 # Filtrando os outliers
 
 df_marcha <- 
-  df |> 
+  df_ajustada |> 
   filter(!vel_marcha > 30)
 
-t.test(vel_marcha ~ sono_classe, paired = FALSE, df_marcha) |> 
-  report()
+t.test(vel_marcha ~ sono_classe, paired = FALSE, df_marcha) 
 ```
 
 ## Marcha - funcionadalidade - COM OS OUTLIERS
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |>
+df_ajustada |>
   ggplot(aes(x = sono_classe,
              y = vel_marcha,
              color = sono_classe)) +
@@ -193,23 +143,22 @@ df |>
 ```
 
 ```{r}
-df |>
+df_ajustada |>
   group_by(sono_classe) |> 
   summarise(média = mean(vel_marcha, na.rm = TRUE),
             DP = sd(vel_marcha, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(vel_marcha ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(vel_marcha ~ sono_classe, paired = FALSE, df_ajustada)
 ```
 
 
 ## tug
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
-             y = tug,
+             y = tug_menor,
              color = sono_classe)) +
   geom_boxplot(varwidth = FALSE) +
   geom_jitter(width = 0.1) +
@@ -217,20 +166,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
-  summarise(média = mean(tug, na.rm = TRUE),
-            DP = sd(tug, na.rm = TRUE))
+  summarise(média = mean(tug_menor, na.rm = TRUE),
+            DP = sd(tug_menor, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(tug ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(tug_menor ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
 
 ## Circunferencia da Cintura
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = cc,
              color = sono_classe)) +
@@ -240,20 +188,20 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(cc, na.rm = TRUE),
             DP = sd(cc, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(cc ~ sono_classe, paired = FALSE, df) |> 
+t.test(cc ~ sono_classe, paired = FALSE, df_ajustada) |> 
   report()
 ```
 
 ## Indice de massa corporal
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = imc,
              color = sono_classe)) +
@@ -263,20 +211,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(imc, na.rm = TRUE),
             DP = sd(imc, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(imc ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(imc ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
 
 ## Relação Cintura Quadril
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = rcq,
              color = sono_classe)) +
@@ -286,20 +233,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(rcq, na.rm = TRUE),
             DP = sd(rcq, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(rcq ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(rcq ~ sono_classe, paired = FALSE, df_ajustada)
 ```
 
 ## Massa magra
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = mm,
              color = sono_classe)) +
@@ -309,20 +255,20 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(mm, na.rm = TRUE),
             DP = sd(mm, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(mm ~ sono_classe, paired = FALSE, df) |> 
+t.test(mm ~ sono_classe, paired = FALSE, df_ajustada) |> 
   report()
 ```
 
 ## Massa magra dividida pelo IMC
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = mm_imc,
              color = sono_classe)) +
@@ -332,21 +278,20 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(mm_imc, na.rm = TRUE),
             DP = sd(mm_imc, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(mm_imc ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(mm_imc ~ sono_classe, paired = FALSE, df_ajustada)
 ```
 
 ## Gordura Visceral
 
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |>
+df_ajustada |>
   mutate(vat_kg = as.numeric(vat_kg)) |> 
   ggplot(aes(x = sono_classe,
              y = vat_kg,
@@ -357,7 +302,7 @@ df |>
 ```
 
 ```{r}
-df |>
+df_ajustada |>
   mutate(vat_kg = as.numeric(vat_kg)) |> 
   group_by(sono_classe) |> 
   summarise(média = mean(vat_kg, na.rm = TRUE),
@@ -365,13 +310,12 @@ df |>
 ```
 
 ```{r warning=FALSE}
-t.test(as.numeric(vat_kg) ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(as.numeric(vat_kg) ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
 
 ## Massa gorda total
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = mgorda_total,
              color = sono_classe)) +
@@ -381,20 +325,19 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(mgorda_total, na.rm = TRUE),
             DP = sd(mgorda_total, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(mgorda_total ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(mgorda_total ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
 
 ## Massa gorda percentual
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
   ggplot(aes(x = sono_classe,
              y = mgorda_perc,
              color = sono_classe)) +
@@ -404,21 +347,22 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
   group_by(sono_classe) |> 
   summarise(média = mean(mgorda_perc, na.rm = TRUE),
             DP = sd(mgorda_total, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(mgorda_perc ~ sono_classe, paired = FALSE, df) |> 
+t.test(mgorda_perc ~ sono_classe, paired = FALSE, df_ajustada) |> 
   report()
 ```
 
 ## Massa gorda tronco
 
 ```{r message=FALSE, warning=FALSE, out.width="100%"}
-df |> 
+df_ajustada |> 
+  filter(m_gorda_tronco < 150000) |> 
   ggplot(aes(x = sono_classe,
              y = m_gorda_tronco,
              color = sono_classe)) +
@@ -428,27 +372,272 @@ df |>
 ```
 
 ```{r}
-df |> 
+df_ajustada |> 
+  filter(m_gorda_tronco < 150000) |> 
   group_by(sono_classe) |> 
   summarise(média = mean(m_gorda_tronco, na.rm = TRUE),
             DP = sd(m_gorda_tronco, na.rm = TRUE))
 ```
 
 ```{r warning=FALSE}
-t.test(m_gorda_tronco ~ sono_classe, paired = FALSE, df) |> 
-  report()
+t.test(m_gorda_tronco ~ sono_classe, paired = FALSE, df_ajustada) 
 ```
+## Massa gorda tronco
+
+```{r message=FALSE, warning=FALSE, out.width="100%"}
+df_ajustada |> 
+  filter(m_gorda_tronco < 150000) |> 
+  ggplot(aes(x = sono_classe,
+             y = m_gorda_tronco,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  filter(m_gorda_tronco < 150000) |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(m_gorda_tronco, na.rm = TRUE),
+            DP = sd(m_gorda_tronco, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(m_gorda_tronco ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - capacidade funcional
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = cap_funcional,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(cap_funcional, na.rm = TRUE),
+            DP = sd(cap_funcional, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(cap_funcional ~ sono_classe, paired = FALSE, df_ajustada)
+```
+
+## SF-16 - aspecto fisico
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = asp_fisico,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(asp_fisico, na.rm = TRUE),
+            DP = sd(asp_fisico, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(asp_fisico ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - dor
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = dor,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(dor, na.rm = TRUE),
+            DP = sd(dor, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(dor ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - estados geral de saude
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = estado_geral_saude,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(estado_geral_saude, na.rm = TRUE),
+            DP = sd(estado_geral_saude, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(estado_geral_saude ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - vitalidade
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = vitalidade,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(vitalidade, na.rm = TRUE),
+            DP = sd(vitalidade, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(vitalidade ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - aspectos sociais
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = aspec_sociais,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(aspec_sociais, na.rm = TRUE),
+            DP = sd(aspec_sociais, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(aspec_sociais ~ sono_classe, paired = FALSE, df_ajustada)
+```
+
+## SF-16 - aspectos emocionais
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = aspec_emocionais,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(aspec_emocionais, na.rm = TRUE),
+            DP = sd(aspec_emocionais, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(aspec_emocionais ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - saude mental
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = saude_mental,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(saude_mental, na.rm = TRUE),
+            DP = sd(saude_mental, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(saude_mental ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - dominio físico
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = sf_fisico,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(sf_fisico, na.rm = TRUE),
+            DP = sd(sf_fisico, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(sf_fisico ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
+## SF-16 - dominio mental
+```{r}
+df_ajustada |> 
+  ggplot(aes(x = sono_classe,
+             y = sf_mental,
+             color = sono_classe)) +
+  geom_boxplot(varwidth = FALSE) +
+  geom_jitter(width = 0.1) +
+  theme_classic()
+```
+
+```{r}
+df_ajustada |> 
+  group_by(sono_classe) |> 
+  summarise(média = mean(sf_mental, na.rm = TRUE),
+            DP = sd(sf_mental, na.rm = TRUE))
+```
+
+```{r warning=FALSE}
+t.test(sf_mental ~ sono_classe, paired = FALSE, df_ajustada) 
+```
+
 
 CONCLUSÕES PARCIAIS
 
-Pacientes "Mal dormidores" tem uma menor massa magra (absoluta e corrigida pelo IMC) e força de preensão manual (absoluta e corrigida pelo IMC) do que idosos "bons dormidores". Será que há uma associação o escore de sono e a massa magra/força?
+Pacientes "Mal dormidores" tem uma menor massa magra (absoluta e corrigida pelo IMC) e força de preensão manual (absoluta e corrigida pelo IMC) do que idosos "bons dormidores". Com relação aos parametros da qualidade de vida avaliada pelo SF-36, obesos classificados como mal dormidores apresentaram um menor escore nos parametros aspecto físico, dor, estado geral de saúde, vitalidade e saúde mental quando comparado com obesos classificados como bons dormidores. Quando analisados em os dominios físico em mental, mals dormidores apresentaram pior escore do que bons dormidores.
 
 # VERIFICANDO AS ASSOCIAÇÕES
 
 ## Relação entre Escore global e massa magra
 
 ```{r}
-df |> 
+df_ajustada |> 
   ggplot(mapping = aes(x = global_score,
                        y = mm)) + 
   geom_point() +
@@ -459,23 +648,20 @@ df |>
 
 ```{r warning=FALSE}
 # REGRESSÃO NÃO AJUSTADA
-modelo1 <- lm(mm ~ global_score, df)
+modelo1 <- lm(mm ~ global_score, df_ajustada)
 parameters::parameters(modelo1)
-report(modelo1)
 ```
 
 ```{r warning=FALSE}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo2 <- lm(mm ~ global_score + sexo + idade + imc, df)
+modelo2 <- lm(mm ~ global_score + sexo + idade + imc, df_ajustada)
 parameters::parameters(modelo2)
-report(modelo2)
-
 ```
 
 ## Relação entre Escore global e massa magra corrigida pelo IMC
 
 ```{r}
-df |> 
+df_ajustada |> 
   ggplot(mapping = aes(x = global_score,
                        y = mm_imc)) + 
   geom_point() +
@@ -486,22 +672,20 @@ df |>
 
 ```{r}
 # REGRESSÃO NÃO AJUSTADA
-modelo3 <- lm(mm_imc ~ global_score, df)
+modelo3 <- lm(mm_imc ~ global_score, df_ajustada)
 parameters::parameters(modelo3)
-report(modelo3)
 ```
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc, df)
+modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc, df_ajustada)
 parameters::parameters(modelo4)
-report(modelo4)
 ```
 
 ## Relação entre Escore global e handgrip
 
 ```{r}
-df |> 
+df_ajustada |> 
   ggplot(mapping = aes(x = global_score,
                        y = hg)) + 
   geom_point() +
@@ -512,22 +696,20 @@ df |>
 
 ```{r}
 # REGRESSÃO NÃO AJUSTADA
-modelo5 <- lm(hg ~ global_score, df)
+modelo5 <- lm(hg ~ global_score, df_ajustada)
 parameters::parameters(modelo5)
-report(modelo5)
 ```
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo6 <- lm(hg ~ global_score + sexo + idade + imc, df)
+modelo6 <- lm(hg ~ global_score + sexo + idade + imc, df_ajustada)
 parameters::parameters(modelo6)
-report(modelo6)
 ```
 
 ## Relação entre Escore global e handgrip/IMC
 
 ```{r}
-df |> 
+df_ajustada |> 
   ggplot(mapping = aes(x = global_score,
                        y = hg_imc)) + 
   geom_point() +
@@ -538,18 +720,63 @@ df |>
 
 ```{r}
 # REGRESSÃO NÃO AJUSTADA
-modelo7 <- lm(hg_imc ~ global_score, df)
+modelo7 <- lm(hg_imc ~ global_score, df_ajustada)
 parameters::parameters(modelo7)
-report(modelo7)
 ```
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc, df)
+modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc, df_ajustada)
 parameters::parameters(modelo8)
-report(modelo8)
 ```
 
+## Relação entre escore global e sf-36 dominio físico 
+
+```{r}
+df_ajustada |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = sf_fisico)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo9 <- lm(sf_fisico ~ global_score, df_ajustada)
+parameters::parameters(modelo9)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo10 <- lm(sf_fisico ~ global_score + sexo + idade + imc, df_ajustada)
+parameters::parameters(modelo10)
+```
+
+## Relação entre escore global e sf-36 dominio mental 
+
+```{r}
+df_ajustada |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = sf_mental)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo11 <- lm(sf_mental ~ global_score, df_ajustada)
+parameters::parameters(modelo11)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo12 <- lm(sf_mental ~ global_score + sexo + idade + imc, df_ajustada)
+parameters::parameters(modelo12)
+```
 
 # NOVAS CONCLUSÕES
 
