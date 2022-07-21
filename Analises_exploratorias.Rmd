@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 ```{r}
 library(readxl)
 library(dplyr)
+library(stringr)
 library(ggplot2)
 library(report)
 options(scipen = 999)
@@ -27,9 +28,41 @@ options(scipen = 999)
 ```{r message=FALSE, warning=FALSE}
 # Lendo a base ----------------------------------------------------------------------
 
-df_ajustada <- read.csv("df_ajustada.csv")
+df_ajustada <- read.csv2("df_ajustada.csv") |> 
+  janitor::clean_names()
 
 ```
+
+```{r}
+# ajustando a base
+df_ajustada <- 
+  df_ajustada |>
+  mutate(antidepressivo = as.factor(antidepressivo),
+         ansiolitico = as.factor(ansiolitico),
+         altura = as.factor(altura),
+         peso = as.numeric(peso),
+         cc = as.numeric(cc),
+         cq = as.numeric(cq),
+         rcq = as.numeric(rcq),
+         vm1 = as.numeric(vm1),
+         vm2 = as.numeric(vm2),
+         vel_marcha = as.numeric(vel_marcha),
+         sl5x1 = as.numeric(sl5x1),
+         sl5x2 = as.numeric(sl5x2),
+         tug_menor = as.numeric(tug_menor),
+         m_gorda_tronco = as.numeric(m_gorda_tronco),
+         n_virgulas = str_count(comorbidades,pattern = ","),
+         n_comorbidades = n_virgulas + 1,
+         n_comor_classe = if_else(n_comorbidades <= 3, 
+                                  true = "Menos que 3", 
+                                  false = "mais que 3")) |>
+  select(-n_virgulas,
+         -tug1,
+         -tug2) |> 
+  glimpse()
+
+```
+
 
 ```{r}
 skimr::skim(df_ajustada)
@@ -262,8 +295,7 @@ df_ajustada |>
 ```
 
 ```{r warning=FALSE}
-t.test(mm ~ sono_classe, paired = FALSE, df_ajustada) |> 
-  report()
+t.test(mm ~ sono_classe, paired = FALSE, df_ajustada)
 ```
 
 ## Massa magra dividida pelo IMC
@@ -654,7 +686,7 @@ parameters::parameters(modelo1)
 
 ```{r warning=FALSE}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo2 <- lm(mm ~ global_score + sexo + idade + imc, df_ajustada)
+modelo2 <- lm(mm ~ global_score + sexo + idade + imc + n_comor_classe, df_ajustada)
 parameters::parameters(modelo2)
 ```
 
@@ -678,7 +710,7 @@ parameters::parameters(modelo3)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc, df_ajustada)
+modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc + n_comor_classe, df_ajustada)
 parameters::parameters(modelo4)
 ```
 
@@ -702,7 +734,7 @@ parameters::parameters(modelo5)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo6 <- lm(hg ~ global_score + sexo + idade + imc, df_ajustada)
+modelo6 <- lm(hg ~ global_score  + sexo + idade + imc + n_comor_classe, df_ajustada)
 parameters::parameters(modelo6)
 ```
 
@@ -726,7 +758,7 @@ parameters::parameters(modelo7)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc, df_ajustada)
+modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc + n_comor_classe, df_ajustada)
 parameters::parameters(modelo8)
 ```
 
@@ -750,7 +782,7 @@ parameters::parameters(modelo9)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo10 <- lm(sf_fisico ~ global_score + sexo + idade + imc, df_ajustada)
+modelo10 <- lm(sf_fisico ~ global_score + sexo + idade + imc + n_comor_classe + antidepressivo, df_ajustada)
 parameters::parameters(modelo10)
 ```
 
@@ -774,7 +806,7 @@ parameters::parameters(modelo11)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo12 <- lm(sf_mental ~ global_score + sexo + idade + imc, df_ajustada)
+modelo12 <- lm(sf_mental ~ global_score  + sexo + idade + imc + n_comor_classe, df_ajustada)
 parameters::parameters(modelo12)
 ```
 
