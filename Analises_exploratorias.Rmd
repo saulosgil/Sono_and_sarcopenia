@@ -20,9 +20,13 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(report)
+```
+```{r}
+# tirar notação cientifica
 options(scipen = 999)
 
 ```
+
 
 ## Lendo a base
 ```{r message=FALSE, warning=FALSE}
@@ -686,7 +690,13 @@ parameters::parameters(modelo1)
 
 ```{r warning=FALSE}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo2 <- lm(mm ~ global_score + sexo + idade + imc + n_comor_classe, df_ajustada)
+modelo2 <- lm(mm ~ global_score + sexo + idade, df_ajustada)
+parameters::parameters(modelo2)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(mm ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
 parameters::parameters(modelo2)
 ```
 
@@ -707,11 +717,16 @@ df_ajustada |>
 modelo3 <- lm(mm_imc ~ global_score, df_ajustada)
 parameters::parameters(modelo3)
 ```
-
-```{r}
+```{r warning=FALSE}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo4 <- lm(mm_imc ~ global_score + sexo + idade + imc + n_comor_classe, df_ajustada)
-parameters::parameters(modelo4)
+modelo2 <- lm(mm_imc ~ global_score + sexo + idade, df_ajustada)
+parameters::parameters(modelo2)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(mm_imc ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo2)
 ```
 
 ## Relação entre Escore global e handgrip
@@ -734,9 +749,16 @@ parameters::parameters(modelo5)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo6 <- lm(hg ~ global_score  + sexo + idade + imc + n_comor_classe, df_ajustada)
+modelo6 <- lm(hg ~ global_score  + sexo + idade, df_ajustada)
 parameters::parameters(modelo6)
 ```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(hg ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo2)
+```
+
 
 ## Relação entre Escore global e handgrip/IMC
 
@@ -762,6 +784,12 @@ modelo8 <- lm(hg_imc ~ global_score + sexo + idade + imc + n_comor_classe, df_aj
 parameters::parameters(modelo8)
 ```
 
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(hg_imc ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo2)
+```
+
 ## Relação entre escore global e sf-36 dominio físico 
 
 ```{r}
@@ -782,8 +810,15 @@ parameters::parameters(modelo9)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo10 <- lm(sf_fisico ~ global_score + sexo + idade + imc + n_comor_classe + antidepressivo, df_ajustada)
+modelo10 <- lm(sf_fisico ~ global_score + sexo + idade, df_ajustada)
 parameters::parameters(modelo10)
+```
+
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(sf_fisico ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo2)
 ```
 
 ## Relação entre escore global e sf-36 dominio mental 
@@ -806,8 +841,14 @@ parameters::parameters(modelo11)
 
 ```{r}
 # REGRESSÃO AJUSTADA - sexo, idade, IMC
-modelo12 <- lm(sf_mental ~ global_score  + sexo + idade + imc + n_comor_classe, df_ajustada)
+modelo12 <- lm(sf_mental ~ global_score  + sexo + idade, df_ajustada)
 parameters::parameters(modelo12)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo2 <- lm(sf_mental ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo2)
 ```
 
 # NOVAS CONCLUSÕES
