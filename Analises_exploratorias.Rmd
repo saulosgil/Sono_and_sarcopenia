@@ -851,6 +851,66 @@ modelo2 <- lm(sf_mental ~ global_score + sexo + idade + imc + dm2 + pulmonary + 
 parameters::parameters(modelo2)
 ```
 
+## Relação entre escore global e depressao 
+
+```{r}
+df_ajustada |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = depressao)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo14 <- lm(depressao ~ global_score, df_ajustada)
+parameters::parameters(modelo14)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo15 <- lm(depressao ~ global_score  + sexo + idade, df_ajustada)
+parameters::parameters(modelo15)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo16 <- lm(depressao ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo16)
+```
+
+## Relação entre escore global e ansiedade 
+
+```{r}
+df_ajustada |> 
+  ggplot(mapping = aes(x = global_score,
+                       y = ansiedade_gai)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+```
+
+```{r}
+# REGRESSÃO NÃO AJUSTADA
+modelo17 <- lm(ansiedade_gai ~ global_score, df_ajustada)
+parameters::parameters(modelo17)
+```
+
+```{r}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo18 <- lm(ansiedade_gai ~ global_score  + sexo + idade, df_ajustada)
+parameters::parameters(modelo18)
+```
+
+```{r warning=FALSE}
+# REGRESSÃO AJUSTADA - sexo, idade, IMC
+modelo19 <- lm(ansiedade_gai ~ global_score + sexo + idade + imc + dm2 + pulmonary + has + psychiatric_diseases + rheumatic_diseases, df_ajustada)
+parameters::parameters(modelo19)
+```
+
 # NOVAS CONCLUSÕES
 
 Como visto antes, tanto a massa magra quando a força de preensão manual parecem sofrer alguma influência do status de sono do idoso, ou seja, quanto pior o escore de sono (mal-dormidor) menor a massa magra absoluta e relativa. Tendo em vista essa influência, é razoavelmente lógico imaginar que a qualidade do sono seja preditor da massa magra e força de preensão manual. Após analisar os resultados das regressões, podemos observar que o escore de qualidade do sono é um preditor da massa magra (absoluta e relativa) e força de preensão manual (absoluta e relativa) de idosos independente do sexo, idade e IMC.
